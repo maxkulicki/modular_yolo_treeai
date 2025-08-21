@@ -19,10 +19,39 @@ This design allows you to:
 2.  **Training:** For each ground-truth bounding box, we extract a corresponding feature vector from the YOLO feature maps using `RoIAlign`. These vectors are used to train a simple, fast classifier (like RandomForest), which is then saved to disk.
 3.  **Inference:** On a new image, YOLO proposes bounding boxes for potential trees. For each box, we extract its feature vector and use our trained lightweight classifier to predict the final species.
 
-## How to Use
+## Project Files
+
+-   `main.py`: Your primary script for **training** and **evaluating** the modular classifier head.
+-   `modular_model.py`: Defines the core `ModularYoloClassifier` class that combines the YOLO backbone and the ML head.
+-   `infer_large_image.py`: A standalone script to run sliding-window inference on large images using your **modular** model.
+-   `infer_yolo_end_to_end.py`: A standalone script to run sliding-window inference using a **standard end-to-end** YOLO model (for baseline comparison).
+-   `evaluation.py`: Contains the logic for calculating end-to-end mAP metrics.
+-   `feature_extractor.py`: Manages loading the YOLO model and extracting its intermediate features.
+
+## Usage & Workflow
 
 ### 1. Setup
 
-Install the required packages:
+First, install the required packages and prepare your data in standard YOLO format (`train/` and `val/` directories with `images/` and `labels/` subfolders).
+
 ```bash
-pip install ultralytics torch scikit-learn numpy opencv-python xgboost joblib tqdm
+pip install ultralytics torch torchvision scikit-learn numpy opencv-python xgboost joblib tqdm
+```
+
+### 2. Training & Evaluation (`main.py`)
+
+Use `main.py` to train a new classifier head and evaluate its performance. Configure the switches at the top of the file to control the process.
+
+**To Train a New Classifier:**
+1.  Open `main.py`.
+2.  Set `CLASSIFIER_TYPE` to `'RandomForest'`, `'XGBoost'`, or `'SVM'`.
+3.  Set `RUN_TRAINING = True`.
+4.  Run the script: `python main.py`
+5.  This will create a saved model file (e.g., `randomforest_classifier.joblib`).
+
+**To Evaluate a Trained Classifier:**
+1.  Open `main.py`.
+2.  Make sure `CLASSIFIER_TYPE` matches the model you want to evaluate.
+3.  Set `RUN_TRAINING = False` and `RUN_EVALUATION = True`.
+4.  Run the script: `python main.py`
+5.  This produces a detailed report in `evaluation_results.txt` with both classifier accuracy and full-pipeline mAP scores.
